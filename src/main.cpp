@@ -3,21 +3,15 @@
 #include <ESP8266WiFi.h>
 #include <addons/RTDBHelper.h>
 #include <addons/TokenHelper.h>
-
+#include <ArduinoJson.h>
 #define SSID "My wifi"
 #define PASS "Adam2020"
 #define DATABASE_URL "espproject-a9f95-default-rtdb.europe-west1.firebasedatabase.app"
 FirebaseData data_object ;
 FirebaseAuth db_auth ;
 FirebaseConfig db_config;
-int i = 0;
-const int trigPin = 12;
-const int echoPin = 14;
-#define SOUND_VELOCITY 0.034
-#define CM_TO_INCH 0.393701 
-long duration;
-float distanceCm;
-float distanceInch;
+
+
 void setup() {
   
   db_config.database_url = DATABASE_URL;
@@ -25,20 +19,19 @@ void setup() {
 
   Serial.begin(9600);
   pinMode(LED_BUILTIN,OUTPUT);
-  pinMode(trigPin, OUTPUT); 
-  pinMode(echoPin, INPUT);
+ 
   WiFi.begin(SSID,PASS);
   delay(1000);
   while (WiFi.status() != WL_CONNECTED)
   {
-    Serial.println("Connecting");
+    //Serial.println("Connecting");
     delay(1000);
   }
-  Serial.print("Connected to ");
+  /* Serial.print("Connected to ");
   Serial.print(SSID);
   Serial.println(" ");
   Serial.print("IP Address ");
-  Serial.print(WiFi.localIP());
+  Serial.print(WiFi.localIP()); */
   Firebase.reconnectWiFi(true);
   Firebase.begin(&db_config,&db_auth);
 
@@ -46,31 +39,38 @@ void setup() {
 }
 
 void loop() {
+DynamicJsonDocument doc(1024);
+int cap1 = 0 ,cap2 =0 ;
+
+doc["type"] = "request";
+serializeJson(doc,Serial);
+
+bool messageR = false;
+String message = "" ;
+while (messageR==false)
+{
+  if(Serial.available()) {
+    message = Serial.readString();
+    messageR = true;
+  }
+}
+
+DeserializationError err = deserializeJson(doc,message);
+
+ if (err) {
+   Serial.print(F("Failed "));
+   Serial.println(err.c_str());
+ }
+  cap1 = doc["Cap 1"];
+  cap2 = doc["Cap 2"];
+  if(Firebase.ready()) {
+  Firebase.RTDB.setInt(&data_object,"cap1",cap1);
+  }
+  if (Firebase.ready()) {
+    Firebase.RTDB.setInt(&data_object,"cap2",cap2);
+  }
   
 
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  
-  
-  duration = pulseIn(echoPin, HIGH);
-  distanceCm = duration * SOUND_VELOCITY/2;
-  
-  
-  if (Firebase.ready() && distanceCm < 10)
-  {
-    
-    Firebase.RTDB.setInt(&data_object,"LED_STATUS",1);
-    Serial.println("A Car is present");
-   
-  }
-  else {
-    
-    Firebase.RTDB.setInt(&data_object,"LED_STATUS",0);
-    Serial.println("No Car is present"); 
-    }
-  delay(500);
-  
+
+  delay(300);
 }
