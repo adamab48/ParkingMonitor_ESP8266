@@ -4,9 +4,9 @@
 #include <addons/RTDBHelper.h>
 #include <addons/TokenHelper.h>
 #include <ArduinoJson.h>
-#define SSID "My wifi"
-#define PASS "Adam2020"
-#define DATABASE_URL "espproject-a9f95-default-rtdb.europe-west1.firebasedatabase.app"
+#define SSID "WIFI SSID"
+#define PASS "WIFI PASSWORD"
+#define DATABASE_URL "INSERT YOUR DB URL"
 FirebaseData data_object ;
 FirebaseAuth db_auth ;
 FirebaseConfig db_config;
